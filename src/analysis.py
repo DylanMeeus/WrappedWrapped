@@ -98,3 +98,27 @@ def build_artist_counts(snapshots: list[dict]) -> list[dict]:
     output = [{"artist": artist, "count": count} for artist, count in counts.items()]
     output.sort(key=lambda entry: (-entry["count"], entry["artist"]))
     return output
+
+
+def build_artist_year_counts(snapshots: list[dict]) -> list[dict]:
+    artist_years: dict[str, set[int]] = {}
+    for snapshot in snapshots:
+        year = snapshot.get("year")
+        if not isinstance(year, int):
+            continue
+        tracks = snapshot.get("tracks", [])
+        for item in tracks:
+            track = normalize_track(item)
+            if not track:
+                continue
+            for artist in track["artists"]:
+                if not artist:
+                    continue
+                artist_years.setdefault(artist, set()).add(year)
+
+    output = [
+        {"artist": artist, "year_count": len(years)}
+        for artist, years in artist_years.items()
+    ]
+    output.sort(key=lambda entry: (-entry["year_count"], entry["artist"]))
+    return output

@@ -6,6 +6,7 @@
 - Notebook exploration lives under `notebooks/`.
 - Raw Spotify snapshots are stored under `data/raw/` (ignored by git).
 - Static site files live under `web/`.
+- Status notes live in `docs/STATUS.md`.
 - Add tests under `tests/` and mirror the `src/` structure when introduced.
 - Place static assets in `assets/` and documentation in `docs/` when they are introduced.
 

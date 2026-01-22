@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>WrappedWrapped - Artist Histogram</title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" defer></script>
+    <script src="https://d3js.org/d3.v7.min.js" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body>
@@ -18,8 +18,27 @@
         </p>
       </header>
       <section class="card">
-        <div id="chart" class="chart">Loading chart…</div>
-        <p class="note">Showing top 50 artists by default.</p>
+        <div class="chart-block">
+          <h2>Track appearances</h2>
+          <div class="chart" id="track-chart">
+            <div class="chart-scroll">
+              <svg class="chart-svg" aria-label="Artist track frequency bar chart"></svg>
+            </div>
+          </div>
+          <p class="note">Scroll horizontally to explore more artists.</p>
+        </div>
+        <div class="chart-block">
+          <h2>Yearly presence</h2>
+          <p class="subtitle small">
+            Counts how many yearly playlists each artist appears in.
+          </p>
+          <div class="chart" id="year-chart">
+            <div class="chart-scroll">
+              <svg class="chart-svg" aria-label="Artist yearly presence bar chart"></svg>
+            </div>
+          </div>
+          <p class="note">Artists with the widest span rise to the top.</p>
+        </div>
       </section>
     </main>
   </body>

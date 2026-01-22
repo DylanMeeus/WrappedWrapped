@@ -36,10 +36,20 @@ h1 {
   margin: 0 0 12px;
 }
 
+h2 {
+  font-size: 22px;
+  margin: 0 0 8px;
+}
+
 .subtitle {
   font-size: 18px;
   max-width: 640px;
   margin: 0;
+}
+
+.subtitle.small {
+  font-size: 15px;
+  margin-bottom: 12px;
 }
 
 .card {
@@ -47,10 +57,32 @@ h1 {
   border-radius: 20px;
   padding: 24px;
   box-shadow: 0 20px 50px rgba(46, 21, 11, 0.12);
+  display: grid;
+  gap: 28px;
 }
 
 .chart {
-  min-height: 420px;
+  min-height: 360px;
+}
+
+.chart-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+}
+
+.chart-svg {
+  display: block;
+}
+
+.axis line,
+.axis path {
+  stroke: #775b4a;
+}
+
+.axis text {
+  font-size: 12px;
+  fill: #2a1c16;
 }
 
 .note {
@@ -69,6 +101,6 @@ h1 {
   }
 
   .chart {
-    min-height: 360px;
+    min-height: 320px;
   }
 }

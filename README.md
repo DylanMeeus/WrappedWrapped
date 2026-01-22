@@ -66,4 +66,4 @@ Serve the repo and open the static page:
 python -m http.server
 ```
 
-Then open `http://localhost:8000/web/`.
+Then open `http://localhost:8000/web/` (D3-based histogram).
