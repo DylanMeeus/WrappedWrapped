@@ -177,3 +177,14 @@ def get_user_playlists(access_token: str) -> list[dict]:
 def get_playlist_tracks(access_token: str, playlist_id: str) -> list[dict]:
     url = f"{API_BASE_URL}/playlists/{playlist_id}/tracks?limit=100"
     return fetch_all_items(url, access_token)
+
+
+def search_playlists(access_token: str, query: str, limit: int = 20) -> list[dict]:
+    params = urlencode({"q": query, "type": "playlist", "limit": limit})
+    url = f"{API_BASE_URL}/search?{params}"
+    payload = spotify_get(url, access_token)
+    return (payload.get("playlists") or {}).get("items", [])
+
+
+def get_current_user(access_token: str) -> dict:
+    return spotify_get(f"{API_BASE_URL}/me", access_token)

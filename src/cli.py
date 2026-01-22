@@ -4,7 +4,14 @@ import os
 import re
 from pathlib import Path
 
-from spotify_api import OAuthConfig, get_access_token, get_playlist_tracks, get_user_playlists
+from spotify_api import (
+    OAuthConfig,
+    get_access_token,
+    get_current_user,
+    get_playlist_tracks,
+    get_user_playlists,
+    search_playlists,
+)
 
 DATA_DIR = Path("data")
 RAW_DIR = DATA_DIR / "raw"
@@ -12,7 +19,7 @@ TOKEN_PATH = DATA_DIR / "spotify_token.json"
 
 
 def parse_year_from_name(name: str) -> int | None:
-    if "top songs" not in name.lower():
+    if not re.search(r"top\s*songs", name, re.IGNORECASE):
         return None
     match = re.search(r"(19|20)\d{2}", name)
     if not match:
@@ -38,7 +45,7 @@ def normalize_track(item: dict) -> dict | None:
 def build_config() -> OAuthConfig:
     client_id = os.environ.get("SPOTIFY_CLIENT_ID")
     client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
-    redirect_uri = os.environ.get("SPOTIFY_REDIRECT_URI", "http://localhost:8765/callback")
+    redirect_uri = os.environ.get("SPOTIFY_REDIRECT_URI", "http://127.0.0.1:8080/callback")
     scopes = ["playlist-read-private", "playlist-read-collaborative"]
 
     if not client_id or not client_secret:
@@ -145,6 +152,28 @@ def fetch_command(year: int | None) -> None:
 
     if not matched:
         print("No playlists matched your criteria.")
+        print(f"Playlists found: {len(playlists)}")
+        top_songs_candidates = [
+            playlist
+            for playlist in playlists
+            if re.search(r"top\s*songs", playlist.get("name", ""), re.IGNORECASE)
+        ]
+        if top_songs_candidates:
+            print("\nPlaylists containing 'top songs':")
+            for playlist in top_songs_candidates:
+                name = playlist.get("name", "Unnamed playlist")
+                playlist_id = playlist.get("id", "unknown-id")
+                owner = (playlist.get("owner") or {}).get("display_name", "unknown owner")
+                print(f"- {name} ({playlist_id}) by {owner}")
+        else:
+            print("\nNo playlists containing 'top songs' were returned.")
+
+        print("\nAll playlists:")
+        for playlist in playlists:
+            name = playlist.get("name", "Unnamed playlist")
+            playlist_id = playlist.get("id", "unknown-id")
+            owner = (playlist.get("owner") or {}).get("display_name", "unknown owner")
+            print(f"- {name} ({playlist_id}) by {owner}")
         return
 
     playlist_tracks: dict[str, list[dict]] = {}
@@ -159,6 +188,42 @@ def fetch_command(year: int | None) -> None:
     summarize(matched, playlist_tracks)
 
 
+def search_command(query: str) -> None:
+    config = build_config()
+    access_token = get_access_token(config)
+    user = get_current_user(access_token)
+    user_id = user.get("id")
+    playlists = search_playlists(access_token, query)
+
+    if not playlists:
+        print("No playlists matched your search.")
+        return
+
+    if not user_id:
+        raise RuntimeError("Unable to determine the current user ID.")
+
+    owned_playlists = [
+        playlist
+        for playlist in playlists
+        if isinstance(playlist, dict)
+        and (playlist.get("owner") or {}).get("id") == user_id
+    ]
+
+    if not owned_playlists:
+        print("No owned playlists matched your search.")
+        return
+
+    print(f"Owned playlists matching '{query}':")
+    for playlist in owned_playlists:
+        if not isinstance(playlist, dict):
+            print(f"- Unexpected playlist entry: {playlist!r}")
+            continue
+        name = playlist.get("name", "Unnamed playlist")
+        playlist_id = playlist.get("id", "unknown-id")
+        owner = (playlist.get("owner") or {}).get("display_name", "unknown owner")
+        print(f"- {name} ({playlist_id}) by {owner}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Fetch Spotify Top Songs playlists.")
     parser.add_argument(
@@ -166,7 +231,15 @@ def main() -> None:
         type=int,
         help="Only include playlists for a specific year (e.g. 2018).",
     )
+    parser.add_argument(
+        "--search",
+        help="Search Spotify for playlists by name (e.g. 'Your Top Songs 2024').",
+    )
     args = parser.parse_args()
+
+    if args.search:
+        search_command(args.search)
+        return
 
     fetch_command(args.year)
 
