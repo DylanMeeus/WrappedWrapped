@@ -42,4 +42,5 @@ python src/cli.py --search "Your Top Songs 2024"
 ```
 
 CLI output includes playlist summaries plus overlap highlights. Raw snapshots are saved
-under `data/raw/` (ignored by git).
+under `data/raw/` (ignored by git). By default, the CLI targets playlists named by year
+between 2017 and 2025 (inclusive).

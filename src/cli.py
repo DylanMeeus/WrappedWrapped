@@ -16,15 +16,15 @@ from spotify_api import (
 DATA_DIR = Path("data")
 RAW_DIR = DATA_DIR / "raw"
 TOKEN_PATH = DATA_DIR / "spotify_token.json"
+YEAR_START = 2017
+YEAR_END = 2025
 
 
 def parse_year_from_name(name: str) -> int | None:
-    if not re.search(r"top\s*songs", name, re.IGNORECASE):
-        return None
-    match = re.search(r"(19|20)\d{2}", name)
-    if not match:
-        return None
-    return int(match.group(0))
+    cleaned = name.strip()
+    if re.fullmatch(r"(19|20)\d{2}", cleaned):
+        return int(cleaned)
+    return None
 
 
 def normalize_track(item: dict) -> dict | None:
@@ -60,7 +60,12 @@ def build_config() -> OAuthConfig:
     )
 
 
-def filter_playlists(playlists: list[dict], year: int | None) -> list[dict]:
+def filter_playlists(
+    playlists: list[dict],
+    year: int | None,
+    year_start: int,
+    year_end: int,
+) -> list[dict]:
     matched = []
     for playlist in playlists:
         playlist_name = playlist.get("name", "")
@@ -68,6 +73,8 @@ def filter_playlists(playlists: list[dict], year: int | None) -> list[dict]:
         if not playlist_year:
             continue
         if year and playlist_year != year:
+            continue
+        if playlist_year < year_start or playlist_year > year_end:
             continue
         matched.append({"year": playlist_year, **playlist})
     return matched
@@ -148,26 +155,14 @@ def fetch_command(year: int | None) -> None:
     access_token = get_access_token(config)
 
     playlists = get_user_playlists(access_token)
-    matched = filter_playlists(playlists, year)
+    matched = filter_playlists(playlists, year, YEAR_START, YEAR_END)
 
     if not matched:
-        print("No playlists matched your criteria.")
+        print(
+            "No playlists matched your criteria for years "
+            f"{YEAR_START} to {YEAR_END}."
+        )
         print(f"Playlists found: {len(playlists)}")
-        top_songs_candidates = [
-            playlist
-            for playlist in playlists
-            if re.search(r"top\s*songs", playlist.get("name", ""), re.IGNORECASE)
-        ]
-        if top_songs_candidates:
-            print("\nPlaylists containing 'top songs':")
-            for playlist in top_songs_candidates:
-                name = playlist.get("name", "Unnamed playlist")
-                playlist_id = playlist.get("id", "unknown-id")
-                owner = (playlist.get("owner") or {}).get("display_name", "unknown owner")
-                print(f"- {name} ({playlist_id}) by {owner}")
-        else:
-            print("\nNo playlists containing 'top songs' were returned.")
-
         print("\nAll playlists:")
         for playlist in playlists:
             name = playlist.get("name", "Unnamed playlist")
