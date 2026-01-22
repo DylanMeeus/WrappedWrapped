@@ -3,7 +3,9 @@
 ## Project Structure & Module Organization
 
 - Application code lives in `src/` with CLI entrypoints in `src/cli.py`.
+- Notebook exploration lives under `notebooks/`.
 - Raw Spotify snapshots are stored under `data/raw/` (ignored by git).
+- Static site files live under `web/`.
 - Add tests under `tests/` and mirror the `src/` structure when introduced.
 - Place static assets in `assets/` and documentation in `docs/` when they are introduced.
 

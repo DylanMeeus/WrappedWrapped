@@ -1,0 +1,74 @@
+:root {
+  color-scheme: light;
+  font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  background: radial-gradient(circle at top, #f6f2ef 0%, #f1e9e2 45%, #efe3d7 100%);
+  color: #2a1c16;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 12px;
+  margin: 0 0 12px;
+}
+
+h1 {
+  font-size: clamp(32px, 4vw, 48px);
+  margin: 0 0 12px;
+}
+
+.subtitle {
+  font-size: 18px;
+  max-width: 640px;
+  margin: 0;
+}
+
+.card {
+  background: #fff8f2;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 20px 50px rgba(46, 21, 11, 0.12);
+}
+
+.chart {
+  min-height: 420px;
+}
+
+.note {
+  font-size: 14px;
+  margin: 12px 0 0;
+  color: #6a554c;
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 32px 18px 60px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .chart {
+    min-height: 360px;
+  }
+}

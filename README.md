@@ -44,3 +44,26 @@ python src/cli.py --search "Your Top Songs 2024"
 CLI output includes playlist summaries plus overlap highlights. Raw snapshots are saved
 under `data/raw/` (ignored by git). By default, the CLI targets playlists named by year
 between 2017 and 2025 (inclusive).
+
+## Notebooks
+
+Notebook experiments live in `notebooks/analysis.ipynb`. The notebook imports helpers
+from `src/analysis.py` and reads cached snapshots from `data/raw/`.
+
+## Build chart data
+
+Generate processed JSON for the frontend:
+
+```bash
+python src/build_data.py
+```
+
+## View the website
+
+Serve the repo and open the static page:
+
+```bash
+python -m http.server
+```
+
+Then open `http://localhost:8000/web/`.

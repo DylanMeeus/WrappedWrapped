@@ -4,6 +4,7 @@ import os
 import re
 from pathlib import Path
 
+from analysis import normalize_track
 from spotify_api import (
     OAuthConfig,
     get_access_token,
@@ -25,21 +26,6 @@ def parse_year_from_name(name: str) -> int | None:
     if re.fullmatch(r"(19|20)\d{2}", cleaned):
         return int(cleaned)
     return None
-
-
-def normalize_track(item: dict) -> dict | None:
-    track = item.get("track")
-    if not track:
-        return None
-    artists = [artist.get("name", "") for artist in track.get("artists", [])]
-    return {
-        "id": track.get("id"),
-        "uri": track.get("uri"),
-        "name": track.get("name"),
-        "artists": artists,
-        "album": (track.get("album") or {}).get("name"),
-        "added_at": item.get("added_at"),
-    }
 
 
 def build_config() -> OAuthConfig:
@@ -92,6 +78,22 @@ def save_playlist_snapshot(playlist: dict, tracks: list[dict]) -> Path:
     with open(path, "w", encoding="utf-8") as handle:
         json.dump(snapshot, handle, indent=2, sort_keys=True)
     return path
+
+
+def load_cached_snapshots() -> dict[int, dict]:
+    snapshots: dict[int, dict] = {}
+    if not RAW_DIR.exists():
+        return snapshots
+    for path in RAW_DIR.glob("*.json"):
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                snapshot = json.load(handle)
+        except (json.JSONDecodeError, OSError):
+            continue
+        year = snapshot.get("year")
+        if isinstance(year, int):
+            snapshots[year] = snapshot
+    return snapshots
 
 
 def summarize(playlists: list[dict], playlist_tracks: dict[str, list[dict]]) -> None:
@@ -156,6 +158,7 @@ def fetch_command(year: int | None) -> None:
 
     playlists = get_user_playlists(access_token)
     matched = filter_playlists(playlists, year, YEAR_START, YEAR_END)
+    cached_snapshots = load_cached_snapshots()
 
     if not matched:
         print(
@@ -174,6 +177,13 @@ def fetch_command(year: int | None) -> None:
     playlist_tracks: dict[str, list[dict]] = {}
     for playlist in matched:
         playlist_id = playlist.get("id")
+        playlist_year = playlist.get("year")
+        if isinstance(playlist_year, int) and playlist_year in cached_snapshots:
+            cached_tracks = cached_snapshots[playlist_year].get("tracks", [])
+            playlist_tracks[playlist_id] = cached_tracks
+            print(f"Using cached data for {playlist.get('name')}")
+            continue
+
         tracks = get_playlist_tracks(access_token, playlist_id)
         playlist_tracks[playlist_id] = tracks
         path = save_playlist_snapshot(playlist, tracks)
